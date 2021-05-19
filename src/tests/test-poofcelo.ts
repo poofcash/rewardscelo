@@ -6,7 +6,6 @@ const PoofCELO = artifacts.require("PoofCELO");
 const MockWrappedCelo = artifacts.require("MockWrappedCelo");
 
 const kit = newKit("http://127.0.0.1:7545")
-const govKit = newKit("http://127.0.0.1:7545")
 
 const toDeposit = 100;
 
@@ -19,7 +18,6 @@ contract("PoofCELO", async (accounts) => {
   const alice = accounts[0];
   const bob = accounts[1];
   const governance = accounts[2];
-  govKit.defaultAccount = governance;
   const treasury = accounts[3];
 
   before(async () => {
@@ -146,4 +144,5 @@ contract("PoofCELO", async (accounts) => {
       await poofCeloKit.deposit(5, 0).send({from: alice})
     })
   })
+
 })

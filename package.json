@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "./test.sh",
+    "bench": "./bench.sh",
     "build": "yarn compile:contracts && yarn compile:ts",
     "clean": "rm -rf ./build ./dist ./types",
     "compile:ts": "yarn tsc -b",

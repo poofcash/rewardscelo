@@ -23,3 +23,28 @@ pCELO forces users to withdraw from every supported wrapped CELO. Withdrawing is
 toWithdraw / pCELO.totalSupply()
 ```
 pCELO was designed this way to prevent users from depositing aCELO and withdrawing bCELO. 
+
+## Benchmarking
+Deposit and withdraw each iterate over the list of wrappedCelos. Each added wrappedCelo will make transactions more expensive. This benchmark describes how the gasUsed increases as the number of wrappedCelos increases:
+
+```
+  Contract: PoofCELO
+    wrappedCelos benchmarking
+Gas price is 0.1 gwei
+Gas used @ 10 wrappedCelos: 119676.
+Gas used @ 20 wrappedCelos: 176009.
+Gas used @ 30 wrappedCelos: 232344.
+Gas used @ 40 wrappedCelos: 288680.
+Gas used @ 50 wrappedCelos: 345018.
+Gas used @ 60 wrappedCelos: 401358.
+Gas used @ 70 wrappedCelos: 457698.
+Gas used @ 80 wrappedCelos: 514041.
+Gas used @ 90 wrappedCelos: 570385.
+Gas used @ 100 wrappedCelos: 626731.
+```
+
+This can be replicated via:
+```
+npm run bench
+```
+
