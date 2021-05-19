@@ -31,8 +31,8 @@ export class PoofCeloKit {
     })).map((event) => (event.returnValues.wrappedCelo));
   }
 
-  public addCeloSupply = (toAdd: number) => {
-    const txo = this.contract.methods.addCeloSupply(toAdd);
+  public updateTotalCELOSupply = () => {
+    const txo = this.contract.methods.updateTotalCELOSupply();
     return toTransactionObject(this.kit.connection, txo);
   }
 
@@ -52,6 +52,16 @@ export class PoofCeloKit {
 
   public clearFeeDivisor = () => {
     const txo = this.contract.methods.clearFeeDivisor();
+    return toTransactionObject(this.kit.connection, txo);
+  }
+
+  public banWrappedCelo = (wrappedCeloIdx: number) => {
+    const txo = this.contract.methods.banWrappedCelo(wrappedCeloIdx);
+    return toTransactionObject(this.kit.connection, txo);
+  }
+
+  public unbanWrappedCelo = (wrappedCeloIdx: number) => {
+    const txo = this.contract.methods.unbanWrappedCelo(wrappedCeloIdx);
     return toTransactionObject(this.kit.connection, txo);
   }
 }

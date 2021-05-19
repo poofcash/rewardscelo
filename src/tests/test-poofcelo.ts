@@ -20,20 +20,19 @@ contract("PoofCELO", async (accounts) => {
   const bob = accounts[1];
   const governance = accounts[2];
   govKit.defaultAccount = governance;
-  const admin = accounts[3];
-  const treasury = accounts[4];
+  const treasury = accounts[3];
 
   before(async () => {
-    poofCelo = await PoofCELO.new(governance, admin);
+    poofCelo = await PoofCELO.new(governance);
     poofCeloKit = new PoofCeloKit(kit, poofCelo.address)
 
     mockWrappedCelo1 = await MockWrappedCelo.new();
     await mockWrappedCelo1.mint(toDeposit, {from: alice});
-    await mockWrappedCelo1.approve(poofCelo.address, toBN(toDeposit), {from: alice});
+    await mockWrappedCelo1.approve(poofCelo.address, toBN(10).pow(toBN(30)), {from: alice});
     await mockWrappedCelo1.setExchangeRate(1);
     mockWrappedCelo2 = await MockWrappedCelo.new();
     await mockWrappedCelo2.mint(toDeposit, {from: bob});
-    await mockWrappedCelo2.approve(poofCelo.address, toBN(toDeposit), {from: bob});
+    await mockWrappedCelo2.approve(poofCelo.address, toBN(10).pow(toBN(30)), {from: bob});
     await mockWrappedCelo2.setExchangeRate(4);
   })
 
@@ -135,12 +134,27 @@ contract("PoofCELO", async (accounts) => {
     })
   })
 
-  describe("#addCeloSupply", () => {
+  describe("#updateTotalCELOSupply", () => {
     it("should work", async () => {
-      assert.equal(await poofCeloKit.totalSupplyCELO(), "0")
-      await poofCeloKit.addCeloSupply(10).send({from: admin});
-      await poofCeloKit.addCeloSupply(5).send({from: admin});
-      assert.equal(await poofCeloKit.totalSupplyCELO(), "15")
+      await poofCeloKit.deposit(5, 0).send({from: alice})
+      await poofCeloKit.deposit(1, 1).send({from: bob})
+      assert.equal((await poofCeloKit.totalSupplyCELO()), "9") // 5 + 4 underlying CELOs
+      await mockWrappedCelo1.setExchangeRate(2);
+      await poofCeloKit.updateTotalCELOSupply().send({from: alice});
+      assert.equal((await poofCeloKit.totalSupplyCELO()), "14") // 10 + 4 underlying CELOs
+    })
+  })
+
+  describe("banning", () => {
+    it("should work", async () => {
+      await poofCeloKit.banWrappedCelo(0).send({from: governance})
+      try {
+        await poofCeloKit.deposit(5, 0).send({from: alice})
+      } catch (e) {
+        expect(e.message).to.contain("Selected wrappedCelo is banned")
+      }
+      await poofCeloKit.unbanWrappedCelo(0).send({from: governance})
+      await poofCeloKit.deposit(5, 0).send({from: alice})
     })
   })
 })
