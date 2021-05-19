@@ -43,6 +43,14 @@ Gas used @ 90 wrappedCelos: 570385.
 Gas used @ 100 wrappedCelos: 626731.
 ```
 
+which can roughly be modeled linearly:
+
+```
+y = 5633.3x + 63343
+```
+
+13M gas block limit would support up to 2,296 wrapped CELOs
+
 This can be replicated via:
 ```
 npm run bench
