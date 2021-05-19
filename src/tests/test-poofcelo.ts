@@ -45,9 +45,9 @@ contract("PoofCELO", async (accounts) => {
     })
   })
 
-  describe("#totalSupplyCELO", () => {
+  describe("#getTotalSupplyCELO", () => {
     it('should initialize to 0', async () => {
-      assert.equal(await poofCeloKit.totalSupplyCELO(), "0")
+      assert.equal(await poofCeloKit.getTotalSupplyCELO(), "0")
     })
   })
 
@@ -71,13 +71,13 @@ contract("PoofCELO", async (accounts) => {
       await poofCeloKit.deposit(toDeposit, 0).send({from: alice})
       assert.isTrue((await poofCelo.balanceOf(alice)).eq(toBN(100)))
       assert.isTrue((await mockWrappedCelo1.balanceOf(alice)).eq(toBN(0)))
-      assert.equal((await poofCeloKit.totalSupplyCELO()), "100")
+      assert.equal((await poofCeloKit.getTotalSupplyCELO()), "100")
 
       // Deposit mockWrappedCelo2
       await poofCeloKit.deposit(toDeposit, 1).send({from: bob})
       assert.isTrue((await poofCelo.balanceOf(bob)).eq(toBN(400)))
       assert.isTrue((await mockWrappedCelo2.balanceOf(bob)).eq(toBN(0)))
-      assert.equal((await poofCeloKit.totalSupplyCELO()), "500")
+      assert.equal((await poofCeloKit.getTotalSupplyCELO()), "500")
     })
   })
 
@@ -119,7 +119,7 @@ contract("PoofCELO", async (accounts) => {
       assert.isTrue((await mockWrappedCelo2.balanceOf(alice)).eq(toReturn1.sub(fee1)))
       assert.isTrue((await mockWrappedCelo1.balanceOf(treasury)).eq(fee1))
       assert.isTrue((await mockWrappedCelo2.balanceOf(treasury)).eq(fee1))
-      assert.equal((await poofCeloKit.totalSupplyCELO()), (toDeposit * 4).toString())
+      assert.equal((await poofCeloKit.getTotalSupplyCELO()), (toDeposit * 4).toString())
 
       // Withdraw for Bob. He has 400 pCELO which is 4x what Alice had
       const toReturn2 = toReturn1.mul(toBN(4))
@@ -130,18 +130,7 @@ contract("PoofCELO", async (accounts) => {
       assert.isTrue((await mockWrappedCelo2.balanceOf(bob)).eq(toReturn2.sub(fee2)))
       assert.isTrue((await mockWrappedCelo1.balanceOf(treasury)).eq(fee1.add(fee2)))
       assert.isTrue((await mockWrappedCelo2.balanceOf(treasury)).eq(fee1.add(fee2)))
-      assert.equal((await poofCeloKit.totalSupplyCELO()), "0")
-    })
-  })
-
-  describe("#updateTotalCELOSupply", () => {
-    it("should work", async () => {
-      await poofCeloKit.deposit(5, 0).send({from: alice})
-      await poofCeloKit.deposit(1, 1).send({from: bob})
-      assert.equal((await poofCeloKit.totalSupplyCELO()), "9") // 5 + 4 underlying CELOs
-      await mockWrappedCelo1.setExchangeRate(2);
-      await poofCeloKit.updateTotalCELOSupply().send({from: alice});
-      assert.equal((await poofCeloKit.totalSupplyCELO()), "14") // 10 + 4 underlying CELOs
+      assert.equal((await poofCeloKit.getTotalSupplyCELO()), "0")
     })
   })
 

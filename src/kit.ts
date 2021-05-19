@@ -31,13 +31,8 @@ export class PoofCeloKit {
     })).map((event) => (event.returnValues.wrappedCelo));
   }
 
-  public updateTotalCELOSupply = () => {
-    const txo = this.contract.methods.updateTotalCELOSupply();
-    return toTransactionObject(this.kit.connection, txo);
-  }
-
-  public totalSupplyCELO = (): Promise<string> => {
-    return this.contract.methods.totalSupplyCELO().call();
+  public getTotalSupplyCELO = (): Promise<string> => {
+    return this.contract.methods.getTotalSupplyCELO().call();
   }
 
   public setFeeTo = (feeTo: Address) => {
