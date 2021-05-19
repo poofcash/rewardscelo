@@ -14,8 +14,8 @@ export class PoofCeloKit {
     return toTransactionObject(this.kit.connection, txo);
   }
 
-  public withdraw = (toWithdraw: number, wrappedCeloIdx: number) => {
-    const txo = this.contract.methods.withdraw(toWithdraw, wrappedCeloIdx)
+  public withdraw = (toWithdraw: number) => {
+    const txo = this.contract.methods.withdraw(toWithdraw)
     return toTransactionObject(this.kit.connection, txo);
   }
 

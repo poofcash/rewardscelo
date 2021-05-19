@@ -80,23 +80,23 @@ contract PoofCELO is ERC20, Ownable {
 		_mint(msg.sender, toMint);
 	}
 
-	/// @notice Withdraws wrappedCELO from the contract in exchange for PoofCELO (pCELO) tokens.
-  /// @param toWithdraw amount of pCELO to withdraw
-  /// @param wrappedCeloIdx index of wrappedCelo to withdraw into
-	function withdraw(uint256 toWithdraw, uint256 wrappedCeloIdx) external {
+	/// @notice Withdraws wrappedCELO from the contract by returning PoofCELO (pCELO) tokens.
+  /// Every wrappedCELO token is proportionally withdrawn according to the toWithdraw:totalSupply ratio
+  /// @param toWithdraw amount of pCELO to withdraw with
+	function withdraw(uint256 toWithdraw) external {
     require(toWithdraw > 0, "Can't withdraw a zero amount");
     require(toWithdraw <= this.balanceOf(msg.sender), "Can't withdraw more than user balance");
-    require(wrappedCeloIdx < wrappedCelos.length, "wrappedCeloIdx out of bounds");
-    IWrappedCelo wrappedCelo = wrappedCelos[wrappedCeloIdx];
-    uint256 celoToReturn = toWithdraw.mul(totalSupplyCELO).div(this.totalSupply());
-    uint256 toReturn = wrappedCelo.celoToSavings(celoToReturn);
-    uint256 fee = 0;
-    if (feeTo != address(0) && feeDivisor != 0) {
-      fee = toReturn.div(feeDivisor);
-      wrappedCelo.transfer(feeTo, fee);
+    for (uint256 i = 0; i < wrappedCelos.length; i++) {
+      IWrappedCelo wrappedCelo = wrappedCelos[i];
+      uint256 toReturn = wrappedCelo.balanceOf(address(this)).mul(toWithdraw).div(this.totalSupply());
+      uint256 fee = 0;
+      if (feeTo != address(0) && feeDivisor != 0) {
+        fee = toReturn.div(feeDivisor);
+        wrappedCelo.transfer(feeTo, fee);
+      }
+      wrappedCelo.transfer(msg.sender, toReturn - fee);
+      totalSupplyCELO = totalSupplyCELO.sub(wrappedCelo.savingsToCELO(toReturn));
     }
-    wrappedCelo.transfer(msg.sender, toReturn - fee);
-    totalSupplyCELO = totalSupplyCELO.sub(celoToReturn);
 		_burn(msg.sender, toWithdraw);
 	}
 

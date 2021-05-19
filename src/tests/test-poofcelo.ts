@@ -8,9 +8,7 @@ const MockWrappedCelo = artifacts.require("MockWrappedCelo");
 const kit = newKit("http://127.0.0.1:7545")
 const govKit = newKit("http://127.0.0.1:7545")
 
-const initialWrappedCelo = 1000000000;
 const toDeposit = 100;
-const toWithdraw = 100;
 
 contract("PoofCELO", async (accounts) => {
   let poofCelo: PoofCELOInstance;
@@ -30,12 +28,12 @@ contract("PoofCELO", async (accounts) => {
     poofCeloKit = new PoofCeloKit(kit, poofCelo.address)
 
     mockWrappedCelo1 = await MockWrappedCelo.new();
-    await mockWrappedCelo1.mint(initialWrappedCelo, {from: alice});
-    await mockWrappedCelo1.approve(poofCelo.address, toBN(initialWrappedCelo), {from: alice});
+    await mockWrappedCelo1.mint(toDeposit, {from: alice});
+    await mockWrappedCelo1.approve(poofCelo.address, toBN(toDeposit), {from: alice});
     await mockWrappedCelo1.setExchangeRate(1);
     mockWrappedCelo2 = await MockWrappedCelo.new();
-    await mockWrappedCelo2.mint(initialWrappedCelo, {from: bob});
-    await mockWrappedCelo2.approve(poofCelo.address, toBN(initialWrappedCelo), {from: bob});
+    await mockWrappedCelo2.mint(toDeposit, {from: bob});
+    await mockWrappedCelo2.approve(poofCelo.address, toBN(toDeposit), {from: bob});
     await mockWrappedCelo2.setExchangeRate(4);
   })
 
@@ -72,15 +70,15 @@ contract("PoofCELO", async (accounts) => {
     it('should work', async () => {
       // Deposit mockWrappedCelo1
       await poofCeloKit.deposit(toDeposit, 0).send({from: alice})
-      assert.isTrue((await poofCelo.balanceOf(alice)).eq(toBN(toDeposit)))
-      assert.isTrue((await mockWrappedCelo1.balanceOf(alice)).eq(toBN(initialWrappedCelo - toDeposit)))
-      assert.equal((await poofCeloKit.totalSupplyCELO()), toDeposit.toString())
+      assert.isTrue((await poofCelo.balanceOf(alice)).eq(toBN(100)))
+      assert.isTrue((await mockWrappedCelo1.balanceOf(alice)).eq(toBN(0)))
+      assert.equal((await poofCeloKit.totalSupplyCELO()), "100")
 
       // Deposit mockWrappedCelo2
       await poofCeloKit.deposit(toDeposit, 1).send({from: bob})
-      assert.isTrue((await poofCelo.balanceOf(bob)).eq(toBN(toDeposit * 4)))
-      assert.isTrue((await mockWrappedCelo2.balanceOf(bob)).eq(toBN(initialWrappedCelo - toDeposit)))
-      assert.equal((await poofCeloKit.totalSupplyCELO()), (toDeposit + toDeposit * 4).toString())
+      assert.isTrue((await poofCelo.balanceOf(bob)).eq(toBN(400)))
+      assert.isTrue((await mockWrappedCelo2.balanceOf(bob)).eq(toBN(0)))
+      assert.equal((await poofCeloKit.totalSupplyCELO()), "500")
     })
   })
 
@@ -107,32 +105,33 @@ contract("PoofCELO", async (accounts) => {
   describe("#withdraw", () => {
     it('should disallow withdrawing 0', async () => {
       try {
-        await poofCeloKit.withdraw(0, 2).send({from: alice})
+        await poofCeloKit.withdraw(0).send({from: alice})
       } catch (e) {
         expect(e.message).to.contain("Can't withdraw a zero amount")
       }
     })
-    it('should disallow withdrawing with an unsupported wrappedCeloIdx', async () => {
-      try {
-        await poofCeloKit.withdraw(1, 2).send({from: alice})
-      } catch (e) {
-        expect(e.message).to.contain("wrappedCeloIdx out of bounds")
-      }
-    })
     it('should work', async () => {
-      // Withdraw mockWrappedCelo1
-      await poofCeloKit.withdraw(toWithdraw, 0).send({from: alice})
+      // Withdraw for Alice. She has 100 pCELO which is 1/5 of the total supply
+      const toReturn1 = toBN(100).div(toBN(5))
+      const fee1 = toReturn1.div(toBN(100));
+      await poofCeloKit.withdraw(toDeposit).send({from: alice})
       assert.isTrue((await poofCelo.balanceOf(alice)).eq(toBN(0)))
-      const fee1 = toBN(toDeposit).div(toBN(100));
-      assert.isTrue((await mockWrappedCelo1.balanceOf(alice)).eq(toBN(initialWrappedCelo).sub(fee1)))
+      assert.isTrue((await mockWrappedCelo1.balanceOf(alice)).eq(toReturn1.sub(fee1)))
+      assert.isTrue((await mockWrappedCelo2.balanceOf(alice)).eq(toReturn1.sub(fee1)))
+      assert.isTrue((await mockWrappedCelo1.balanceOf(treasury)).eq(fee1))
+      assert.isTrue((await mockWrappedCelo2.balanceOf(treasury)).eq(fee1))
       assert.equal((await poofCeloKit.totalSupplyCELO()), (toDeposit * 4).toString())
 
-      // Deposit mockWrappedCelo2
-      await poofCeloKit.withdraw(toWithdraw * 4, 1).send({from: bob})
+      // Withdraw for Bob. He has 400 pCELO which is 4x what Alice had
+      const toReturn2 = toReturn1.mul(toBN(4))
+      const fee2 = toReturn2.div(toBN(100));
+      await poofCeloKit.withdraw(toDeposit * 4).send({from: bob})
       assert.isTrue((await poofCelo.balanceOf(bob)).eq(toBN(0)))
-      const fee2 = toBN(toDeposit).div(toBN(100));
-      assert.isTrue((await mockWrappedCelo2.balanceOf(bob)).eq(toBN(initialWrappedCelo).sub(fee2)))
-      assert.equal(await poofCeloKit.totalSupplyCELO(), "0")
+      assert.isTrue((await mockWrappedCelo1.balanceOf(bob)).eq(toReturn2.sub(fee2)))
+      assert.isTrue((await mockWrappedCelo2.balanceOf(bob)).eq(toReturn2.sub(fee2)))
+      assert.isTrue((await mockWrappedCelo1.balanceOf(treasury)).eq(fee1.add(fee2)))
+      assert.isTrue((await mockWrappedCelo2.balanceOf(treasury)).eq(fee1.add(fee2)))
+      assert.equal((await poofCeloKit.totalSupplyCELO()), "0")
     })
   })
 
