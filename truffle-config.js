@@ -2,12 +2,10 @@ require("ts-node").register({
   files: true,
 });
 require('dotenv').config()
-const HDWalletProvider = require('@truffle/hdwallet-provider')
 const utils = require('web3-utils')
 
 const ContractKit = require('@celo/contractkit')
 const Web3 = require('web3')
-const path = require('path')
 
 // Connect to the desired network
 const web3 = new Web3(process.env.RPC_URL)
