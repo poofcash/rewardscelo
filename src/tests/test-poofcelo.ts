@@ -21,7 +21,8 @@ contract("PoofCELO", async (accounts) => {
   const treasury = accounts[3];
 
   before(async () => {
-    poofCelo = await PoofCELO.new(governance);
+    poofCelo = await PoofCELO.new();
+    await poofCelo.transferOwnership(governance, {from: alice})
     poofCeloKit = new PoofCeloKit(kit, poofCelo.address)
 
     mockWrappedCelo1 = await MockWrappedCelo.new();

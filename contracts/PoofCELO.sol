@@ -23,8 +23,6 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
   address public feeTo;
   /// @dev divisor applied to withdrawals to generate fees.
   uint256 public feeDivisor;
-  /// @dev authorized governance address.
-  address public governance;
 
   /// @dev emitted when a new WrappedCelo is added
   /// @param wrappedCelo address of the added WrappedCelo
@@ -38,18 +36,11 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
   /// @param newFeeDivisor address of the new `feeDivisor`
   event FeeDivisorChanged(uint256 indexed previousFeeDivisor, uint256 indexed newFeeDivisor);
 
-  constructor(address _governance) ERC20("PoofCELO", "pCELO") {
-    governance = _governance;
-  }
-
-  modifier governanceOnly() {
-    require(governance == _msgSender(), "Caller must be the registered governance address");
-    _;
-  }
+  constructor() ERC20("PoofCELO", "pCELO") {}
 
   /// @notice Adds support for another wrapped CELO token
   /// @param wrappedCelo address of the new wrapped CELO token to support
-  function addWrappedCelo(address wrappedCelo) external governanceOnly {
+  function addWrappedCelo(address wrappedCelo) external onlyOwner {
     wrappedCelos.push(IWrappedCelo(wrappedCelo));
     emit WrappedCeloAdded(wrappedCelo);
   }
@@ -115,7 +106,7 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
 
   /// @notice Sets the address that receives fees from this contract
   /// @param _feeTo address to receive fees from this contract
-  function setFeeTo(address _feeTo) external governanceOnly {
+  function setFeeTo(address _feeTo) external onlyOwner {
     address previousFeeTo = feeTo;
     feeTo = _feeTo;
     emit FeeToChanged(previousFeeTo, feeTo);
@@ -123,7 +114,7 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
 
   /// @notice Sets the new fee rate
   /// @param _feeDivisor fee divisor to apply to all withdrawals
-  function setFeeDivisor(uint256 _feeDivisor) external governanceOnly {
+  function setFeeDivisor(uint256 _feeDivisor) external onlyOwner {
     require(_feeDivisor >= MIN_FEE_DIVISOR, "New fee rate is too high");
     uint256 previousFeeDivisor = feeDivisor;
     feeDivisor = _feeDivisor;
@@ -131,7 +122,7 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
   }
 
   /// @notice Disables fees on this contract
-  function clearFeeDivisor() external governanceOnly {
+  function clearFeeDivisor() external onlyOwner {
     uint256 previousFeeDivisor = feeDivisor;
     feeDivisor = 0;
     emit FeeDivisorChanged(previousFeeDivisor, feeDivisor);
@@ -139,14 +130,14 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
 
   /// @notice Bans a wrappedCelo from being deposited
   /// @param wrappedCeloIdx index of the wrappedCelo to ban
-  function banWrappedCelo(uint256 wrappedCeloIdx) external governanceOnly {
+  function banWrappedCelo(uint256 wrappedCeloIdx) external onlyOwner {
     require(wrappedCeloIdx < wrappedCelos.length, "wrappedCeloIdx out of bounds");
     bans[address(wrappedCelos[wrappedCeloIdx])] = true;
   }
 
   /// @notice Unbans a wrappedCelo from being deposited
   /// @param wrappedCeloIdx index of the wrappedCelo to unban
-  function unbanWrappedCelo(uint256 wrappedCeloIdx) external governanceOnly {
+  function unbanWrappedCelo(uint256 wrappedCeloIdx) external onlyOwner {
     require(wrappedCeloIdx < wrappedCelos.length, "wrappedCeloIdx out of bounds");
     bans[address(wrappedCelos[wrappedCeloIdx])] = false;
   }

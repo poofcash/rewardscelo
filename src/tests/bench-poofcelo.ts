@@ -15,10 +15,9 @@ contract("PoofCELO", async (accounts) => {
   let poofCeloKit: PoofCeloKit;
 
   const alice = accounts[0];
-  const governance = accounts[1];
 
   before(async () => {
-    poofCelo = await PoofCELO.new(governance);
+    poofCelo = await PoofCELO.new();
     poofCeloKit = new PoofCeloKit(kit, poofCelo.address)
   })
 
@@ -31,7 +30,7 @@ contract("PoofCELO", async (accounts) => {
         await mockWrappedCelo.mint(toDeposit, {from: alice});
         await mockWrappedCelo.approve(poofCelo.address, toBN(10).pow(toBN(30)), {from: alice});
         await mockWrappedCelo.setExchangeRate(1);
-        await poofCeloKit.addWrappedCelo(mockWrappedCelo.address).send({from: governance});
+        await poofCeloKit.addWrappedCelo(mockWrappedCelo.address).send({from: alice});
 
         const txn = await poofCeloKit.deposit(toDeposit, i - 1).send({
           from: alice,
