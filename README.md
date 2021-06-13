@@ -5,8 +5,7 @@ Rewards CELO is a wrapper around wrapper CELO tokens like [SavingsCELO](https://
 ## Usage
 ```
 npm i
-npm run build
-npm run test
+npm run build npm run test
 ```
 
 ## Depositing
@@ -55,4 +54,13 @@ This can be replicated via:
 ```
 npm run bench
 ```
+
+## Contract addresses
+
+### Mainnet
+RewardsCELO: [0x1a8Dbe5958c597a744Ba51763AbEBD3355996c3e](https://explorer.celo.org/address/0x1a8dbe5958c597a744ba51763abebd3355996c3e)
+
+### Alfajores
+RewardsCELO: [0xBDeedCDA79BAbc4Eb509aB689895a3054461691e](https://alfajores-blockscout.celo-testnet.org/address/0xBDeedCDA79BAbc4Eb509aB689895a3054461691e)
+MockWrappedCelo: [0x77287E942993A056E75b849DEB84B33F28dEFada](https://alfajores-blockscout.celo-testnet.org/address/0x77287E942993A056E75b849DEB84B33F28dEFada)
 
