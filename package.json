@@ -10,6 +10,8 @@
     "test": "./test.sh",
     "bench": "./bench.sh",
     "build": "yarn compile:contracts && yarn compile:ts",
+    "deploy:alfajores": "yarn truffle migrate --network alfajores",
+    "deploy:mainnet": "yarn truffle migrate --network mainnet",
     "clean": "rm -rf ./build ./dist ./types",
     "compile:ts": "yarn tsc -b",
     "compile:contracts": "yarn truffle compile && yarn typechain --target=truffle-v5 'build/contracts/*.json' && yarn ts-node ./src/codegen.ts"
