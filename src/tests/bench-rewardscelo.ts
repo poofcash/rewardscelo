@@ -1,8 +1,8 @@
-import {PoofCeloKit} from "../kit"
+import {RewardsCeloKit} from "../kit"
 import {newKit} from "@celo/contractkit"
-import {PoofCELOInstance} from "../../types/truffle-contracts";
+import {RewardsCELOInstance} from "../../types/truffle-contracts";
 import {toBN, toWei} from "web3-utils";
-const PoofCELO = artifacts.require("PoofCELO");
+const RewardsCELO = artifacts.require("RewardsCELO");
 const MockWrappedCelo = artifacts.require("MockWrappedCelo");
 
 const kit = newKit("http://127.0.0.1:7545")
@@ -10,15 +10,15 @@ const kit = newKit("http://127.0.0.1:7545")
 const toDeposit = 100;
 
 
-contract("PoofCELO", async (accounts) => {
-  let poofCelo: PoofCELOInstance;
-  let poofCeloKit: PoofCeloKit;
+contract("RewardsCELO", async (accounts) => {
+  let rewardsCelo: RewardsCELOInstance;
+  let rewardsCeloKit: RewardsCeloKit;
 
   const alice = accounts[0];
 
   before(async () => {
-    poofCelo = await PoofCELO.new();
-    poofCeloKit = new PoofCeloKit(kit, poofCelo.address)
+    rewardsCelo = await RewardsCELO.new();
+    rewardsCeloKit = new RewardsCeloKit(kit, rewardsCelo.address)
   })
 
   describe("wrappedCelos benchmarking", () => {
@@ -28,11 +28,11 @@ contract("PoofCELO", async (accounts) => {
       for (let i = 1; i <= 100; i++) {
         const mockWrappedCelo = await MockWrappedCelo.new();
         await mockWrappedCelo.mint(toDeposit, {from: alice});
-        await mockWrappedCelo.approve(poofCelo.address, toBN(10).pow(toBN(30)), {from: alice});
+        await mockWrappedCelo.approve(rewardsCelo.address, toBN(10).pow(toBN(30)), {from: alice});
         await mockWrappedCelo.setExchangeRate(1);
-        await poofCeloKit.addWrappedCelo(mockWrappedCelo.address).send({from: alice});
+        await rewardsCeloKit.addWrappedCelo(mockWrappedCelo.address).send({from: alice});
 
-        const txn = await poofCeloKit.deposit(toDeposit, i - 1).send({
+        const txn = await rewardsCeloKit.deposit(toDeposit, i - 1).send({
           from: alice,
           gasPrice: toWei(gasPrice, 'gwei'),
         })

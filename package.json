@@ -1,7 +1,7 @@
 {
-  "name": "poofcelo",
+  "name": "rewardscelo",
   "version": "1.0.0",
-  "description": "Poof protocol's wrapper for CELO",
+  "description": "A wrapped wrapped CELO token that accumulates rewards",
   "main": "./dist/src/index.js",
   "directories": {
     "test": "test"
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/poofcash/poofcelo.git"
+    "url": "git+https://github.com/poofcash/rewardscelo.git"
   },
   "author": "Brian Li <brian@poof.cash>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/poofcash/poofcelo/issues"
+    "url": "https://github.com/poofcash/rewardscelo/issues"
   },
-  "homepage": "https://github.com/poofcash/poofcelo#readme",
+  "homepage": "https://github.com/poofcash/rewardscelo#readme",
   "dependencies": {
     "@celo/contractkit": "^1.2.0",
     "@openzeppelin/contracts": "^4.1.0",

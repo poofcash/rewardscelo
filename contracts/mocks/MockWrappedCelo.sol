@@ -31,5 +31,3 @@ contract MockWrappedCelo is IWrappedCelo, ERC20 {
   }
 }
 
-
-

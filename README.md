@@ -1,6 +1,6 @@
-# Poof CELO
+# Rewards CELO
 
-Poof CELO is a wrapper around wrapper CELO tokens like [SavingsCELO](https://github.com/zviadm/savingscelo). Poof CELO allows users to earn interest using any interest bearing CELO wrapper they choose.
+Rewards CELO is a wrapper around wrapper CELO tokens like [SavingsCELO](https://github.com/zviadm/savingscelo). Rewards CELO allows users to earn interest using any interest bearing CELO wrapper they choose.
 
 ## Usage
 ```
@@ -28,7 +28,7 @@ pCELO was designed this way to prevent users from depositing aCELO and withdrawi
 Deposit and withdraw each iterate over the list of wrappedCelos. Each added wrappedCelo will make transactions more expensive. This benchmark describes how the gasUsed increases as the number of wrappedCelos increases:
 
 ```
-  Contract: PoofCELO
+  Contract: RewardsCELO
     wrappedCelos benchmarking
 Gas price is 0.1 gwei
 Gas used @ 10 wrappedCelos: 119676.

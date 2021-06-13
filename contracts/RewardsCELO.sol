@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IWrappedCelo.sol";
 
-contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
+contract RewardsCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
   using SafeMath for uint256;
   using SafeERC20 for IWrappedCelo;
 
@@ -36,7 +36,7 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
   /// @param newFeeDivisor address of the new `feeDivisor`
   event FeeDivisorChanged(uint256 indexed previousFeeDivisor, uint256 indexed newFeeDivisor);
 
-  constructor() ERC20("PoofCELO", "pCELO") {}
+  constructor() ERC20("RewardsCELO", "rCELO") {}
 
   /// @notice Adds support for another wrapped CELO token
   /// @param wrappedCelo address of the new wrapped CELO token to support
@@ -45,7 +45,7 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
     emit WrappedCeloAdded(wrappedCelo);
   }
 
-  /// @notice Deposits wrappedCelo to the contract in exchange for PoofCELO (pCELO) tokens. 
+  /// @notice Deposits wrappedCelo to the contract in exchange for RewardsCELO (pCELO) tokens. 
   /// pCELO to mint is determined by the equivalence:
   /// savingsToCELO(toDeposit) / nextTotalSupplyCELO = toMint / (this.totalSupply() + toMint)
   /// and solving for `toMint`.
@@ -81,7 +81,7 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
     return totalSupplyCELO;
   }
 
-  /// @notice Withdraws wrappedCelo from the contract by returning PoofCELO (pCELO) tokens.
+  /// @notice Withdraws wrappedCelo from the contract by returning RewardsCELO (pCELO) tokens.
   /// Every wrappedCelo token is proportionally withdrawn according to the toWithdraw:totalSupply ratio
   /// @param toWithdraw amount of pCELO to withdraw with
   function withdraw(uint256 toWithdraw) external nonReentrant {

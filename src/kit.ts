@@ -1,12 +1,12 @@
 import {Address, ContractKit} from "@celo/contractkit"
-import {PoofCelo, ABI} from "../types/web3-v1-contracts/PoofCELO";
+import {RewardsCelo, ABI} from "../types/web3-v1-contracts/RewardsCELO";
 import {toTransactionObject} from "@celo/connect"
 
-export class PoofCeloKit {
-  public readonly contract: PoofCelo
+export class RewardsCeloKit {
+  public readonly contract: RewardsCelo
 
   constructor(private kit: ContractKit, address: Address) {
-    this.contract = new kit.web3.eth.Contract(ABI, address) as PoofCelo
+    this.contract = new kit.web3.eth.Contract(ABI, address) as RewardsCelo
   }
 
   public deposit = (toDeposit: number, wrappedCeloIdx: number) => {
