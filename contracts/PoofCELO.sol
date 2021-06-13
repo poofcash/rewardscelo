@@ -2,19 +2,23 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IWrappedCelo.sol";
 
-contract PoofCELO is ERC20, Ownable, IWrappedCelo {
+contract PoofCELO is ERC20, Ownable, IWrappedCelo, ReentrancyGuard {
   using SafeMath for uint256;
+  using SafeERC20 for IWrappedCelo;
+
   // Maximum fee of 1%
   uint256 constant public MIN_FEE_DIVISOR = 100;
 
   /// @dev list of wrappedCelo addresses.
   IWrappedCelo[] public wrappedCelos;
   /// @dev map of wrappedCelo address to ban status.
-  mapping (address => bool) bans;
+  mapping (address => bool) public bans;
   /// @dev recipient of contract fees.
   address public feeTo;
   /// @dev divisor applied to withdrawals to generate fees.
@@ -39,13 +43,13 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo {
   }
 
   modifier governanceOnly() {
-    require(governance == msg.sender, "caller must be the registered governance");
+    require(governance == _msgSender(), "Caller must be the registered governance address");
     _;
   }
 
   /// @notice Adds support for another wrapped CELO token
   /// @param wrappedCelo address of the new wrapped CELO token to support
-  function addWrappedCelo(address wrappedCelo) governanceOnly external {
+  function addWrappedCelo(address wrappedCelo) external governanceOnly {
     wrappedCelos.push(IWrappedCelo(wrappedCelo));
     emit WrappedCeloAdded(wrappedCelo);
   }
@@ -56,7 +60,7 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo {
   /// and solving for `toMint`.
   /// @param toDeposit amount of wrappedCelo to deposit
   /// @param wrappedCeloIdx index of wrappedCelo that is supported by pCELO
-  function deposit(uint256 toDeposit, uint256 wrappedCeloIdx) external {
+  function deposit(uint256 toDeposit, uint256 wrappedCeloIdx) external nonReentrant {
     require(toDeposit > 0, "Can't deposit a zero amount");
     require(wrappedCeloIdx < wrappedCelos.length, "wrappedCeloIdx out of bounds");
     IWrappedCelo wrappedCelo = wrappedCelos[wrappedCeloIdx];
@@ -66,13 +70,14 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo {
 
     uint256 celoToAdd = wrappedCelo.savingsToCELO(toDeposit);
     uint256 nextTotalSupplyCELO = totalSupplyCELO.add(celoToAdd);
-    uint256 toMint = toDeposit;
-    if (totalSupplyCELO > 0) {
+    uint256 toMint;
+    if (totalSupplyCELO == 0) {
+      toMint = toDeposit;
+    } else {
       toMint = celoToAdd.mul(this.totalSupply()).div(nextTotalSupplyCELO.sub(celoToAdd));
     }
-    totalSupplyCELO = nextTotalSupplyCELO;
-    wrappedCelo.transferFrom(msg.sender, address(this), toDeposit);
-    _mint(msg.sender, toMint);
+    wrappedCelo.safeTransferFrom(_msgSender(), address(this), toDeposit);
+    _mint(_msgSender(), toMint);
   }
 
   /// @notice Returns the total amount of CELO represented by all wrapped CELO tokens
@@ -88,9 +93,9 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo {
   /// @notice Withdraws wrappedCelo from the contract by returning PoofCELO (pCELO) tokens.
   /// Every wrappedCelo token is proportionally withdrawn according to the toWithdraw:totalSupply ratio
   /// @param toWithdraw amount of pCELO to withdraw with
-  function withdraw(uint256 toWithdraw) external {
+  function withdraw(uint256 toWithdraw) external nonReentrant {
     require(toWithdraw > 0, "Can't withdraw a zero amount");
-    require(toWithdraw <= this.balanceOf(msg.sender), "Can't withdraw more than user balance");
+    require(toWithdraw <= this.balanceOf(_msgSender()), "Can't withdraw more than user balance");
 
     uint256 totalSupplyCELO = getTotalSupplyCELO();
 
@@ -100,17 +105,17 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo {
       uint256 fee = 0;
       if (feeTo != address(0) && feeDivisor != 0) {
         fee = toReturn.div(feeDivisor);
-        wrappedCelo.transfer(feeTo, fee);
+        wrappedCelo.safeTransfer(feeTo, fee);
       }
-      wrappedCelo.transfer(msg.sender, toReturn - fee);
+      wrappedCelo.safeTransfer(_msgSender(), toReturn.sub(fee));
       totalSupplyCELO = totalSupplyCELO.sub(wrappedCelo.savingsToCELO(toReturn));
     }
-    _burn(msg.sender, toWithdraw);
+    _burn(_msgSender(), toWithdraw);
   }
 
   /// @notice Sets the address that receives fees from this contract
   /// @param _feeTo address to receive fees from this contract
-  function setFeeTo(address _feeTo) governanceOnly external {
+  function setFeeTo(address _feeTo) external governanceOnly {
     address previousFeeTo = feeTo;
     feeTo = _feeTo;
     emit FeeToChanged(previousFeeTo, feeTo);
@@ -118,29 +123,30 @@ contract PoofCELO is ERC20, Ownable, IWrappedCelo {
 
   /// @notice Sets the new fee rate
   /// @param _feeDivisor fee divisor to apply to all withdrawals
-  function setFeeDivisor(uint256 _feeDivisor) governanceOnly external {
-    require(_feeDivisor >= MIN_FEE_DIVISOR, 'New fee rate is too high');
+  function setFeeDivisor(uint256 _feeDivisor) external governanceOnly {
+    require(_feeDivisor >= MIN_FEE_DIVISOR, "New fee rate is too high");
     uint256 previousFeeDivisor = feeDivisor;
     feeDivisor = _feeDivisor;
     emit FeeDivisorChanged(previousFeeDivisor, feeDivisor);
   }
 
   /// @notice Disables fees on this contract
-  function clearFeeDivisor() governanceOnly external {
+  function clearFeeDivisor() external governanceOnly {
+    uint256 previousFeeDivisor = feeDivisor;
     feeDivisor = 0;
     emit FeeDivisorChanged(previousFeeDivisor, feeDivisor);
   }
 
   /// @notice Bans a wrappedCelo from being deposited
   /// @param wrappedCeloIdx index of the wrappedCelo to ban
-  function banWrappedCelo(uint256 wrappedCeloIdx) governanceOnly external {
+  function banWrappedCelo(uint256 wrappedCeloIdx) external governanceOnly {
     require(wrappedCeloIdx < wrappedCelos.length, "wrappedCeloIdx out of bounds");
     bans[address(wrappedCelos[wrappedCeloIdx])] = true;
   }
 
   /// @notice Unbans a wrappedCelo from being deposited
   /// @param wrappedCeloIdx index of the wrappedCelo to unban
-  function unbanWrappedCelo(uint256 wrappedCeloIdx) governanceOnly external {
+  function unbanWrappedCelo(uint256 wrappedCeloIdx) external governanceOnly {
     require(wrappedCeloIdx < wrappedCelos.length, "wrappedCeloIdx out of bounds");
     bans[address(wrappedCelos[wrappedCeloIdx])] = false;
   }
