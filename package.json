@@ -1,6 +1,6 @@
 {
-  "name": "rewardscelo",
-  "version": "1.0.0",
+  "name": "@poofcash/rewardscelo",
+  "version": "1.0.1",
   "description": "A wrapped wrapped CELO token that accumulates rewards",
   "main": "./dist/src/index.js",
   "directories": {

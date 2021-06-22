@@ -9,12 +9,12 @@ export class RewardsCeloKit {
     this.contract = new kit.web3.eth.Contract(ABI, address) as RewardsCelo
   }
 
-  public deposit = (toDeposit: number, wrappedCeloIdx: number) => {
+  public deposit = (toDeposit: number | string, wrappedCeloIdx: number) => {
     const txo = this.contract.methods.deposit(toDeposit, wrappedCeloIdx)
     return toTransactionObject(this.kit.connection, txo);
   }
 
-  public withdraw = (toWithdraw: number) => {
+  public withdraw = (toWithdraw: number | string) => {
     const txo = this.contract.methods.withdraw(toWithdraw)
     return toTransactionObject(this.kit.connection, txo);
   }
